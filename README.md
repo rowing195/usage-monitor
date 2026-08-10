@@ -78,33 +78,35 @@ Runtime state lives in `~/.usage-monitor/`: `claude-statusline.json`, `window-st
 - A **Claude Pro or Max subscription account** signed into Claude Code — API-billing accounts never receive `rate_limits` data, so the Claude side of the orb will stay empty
 - [Node.js](https://nodejs.org/) — only required if you build from source, or if you run the **portable** build and want the Claude status line to work (see note below)
 
-### Installation
+**Option A — download a prebuilt build (recommended for regular use)**
 
-**Option A — prebuilt installer (recommended for regular use)**
+Grab the latest `Usage Monitor <version> Setup.exe` (installer) or `Usage Monitor <version> Portable.exe` (no install step) from the [Releases page](https://github.com/rowing195/usage-monitor/releases).
 
-Grab `Usage Monitor <version> Setup.exe` from a release and run it. It's a per-user install (no admin rights needed), with a proper uninstall entry and desktop shortcut.
+- **Setup.exe**: per-user install, no admin rights needed, proper uninstall entry and desktop shortcut.
+- **Portable.exe**: run directly, nothing installed. Because it unpacks itself into a new temp directory on every launch, the Claude status line integration (see below) falls back to your system's `node` instead of the app's own runtime — install Node.js first if you plan to use that build's status line feature.
 
-**Option B — portable build**
-
-Grab `Usage Monitor <version> Portable.exe` and run it directly — no install step. Note: because a portable build unpacks itself into a new temp directory on every launch, the Claude status line integration (see below) falls back to your system's `node` instead of the app's own runtime. Install Node.js first if you plan to use this build's status line feature.
-
-**Option C — run from source**
+**Option B — build it yourself**
 
 ```sh
-git clone <this-repository>
-cd "Usage Monitor"
+git clone https://github.com/rowing195/usage-monitor.git
+cd usage-monitor
 npm install
-npm start
-```
-
-### Building the installer yourself
-
-```sh
 npm run dist        # builds both the NSIS installer and the portable .exe
 npm run dist:dir     # unpacked build only, for quick local testing
 ```
 
-Output lands in `dist/`. You do **not** need to rebuild during normal development — `npm start` runs directly against the source in `src/`. Packaging is only for producing something to hand to someone else.
+Output lands in `dist/`.
+
+**Option C — run from source**
+
+```sh
+git clone https://github.com/rowing195/usage-monitor.git
+cd usage-monitor
+npm install
+npm start
+```
+
+You do **not** need to package anything for day-to-day development — `npm start` runs directly against the source in `src/`. Packaging (Option A) is only for producing something to install or hand to someone else.
 
 ### Connecting the Claude side
 

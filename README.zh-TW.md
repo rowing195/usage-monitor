@@ -80,31 +80,35 @@ start.vbs / start.bat           啟動器，不留下 console 視窗
 
 ### 安裝方式
 
-**方式 A —— 安裝檔（一般使用建議選這個）**
+**方式 A —— 下載預先建置好的版本（一般使用建議選這個）**
 
-到 release 下載 `Usage Monitor <版本號> Setup.exe` 執行即可。這是使用者層級安裝（不需要管理員權限），有正常的解除安裝項目與桌面捷徑。
+到 [Releases 頁面](https://github.com/rowing195/usage-monitor/releases) 抓最新的 `Usage Monitor <版本號> Setup.exe`（安裝檔）或 `Usage Monitor <版本號> Portable.exe`（免安裝）。
 
-**方式 B —— 免安裝版（portable）**
+- **Setup.exe**：使用者層級安裝，不需要管理員權限，有正常的解除安裝項目與桌面捷徑。
+- **Portable.exe**：直接執行，不安裝任何東西。因為它每次啟動都會解壓到新的暫存目錄，Claude statusline 整合（見下方）會退回用你系統裡的 `node`，而不是 app 自帶的執行環境。如果你打算用這個版本的 statusline 功能，請先裝好 Node.js。
 
-下載 `Usage Monitor <版本號> Portable.exe` 直接雙擊執行，不需要安裝步驟。注意：portable 版每次啟動都會解壓到新的暫存目錄，所以 Claude statusline 整合（見下方）會退回用你系統裡的 `node`，而不是 app 自帶的執行環境。如果你打算用這個版本的 statusline 功能，請先裝好 Node.js。
-
-**方式 C —— 從原始碼執行**
+**方式 B —— 自己建置**
 
 ```sh
-git clone <this-repository>
-cd "Usage Monitor"
+git clone https://github.com/rowing195/usage-monitor.git
+cd usage-monitor
 npm install
-npm start
-```
-
-### 自己打包安裝檔
-
-```sh
 npm run dist        # 同時產出 NSIS 安裝檔與 portable exe
 npm run dist:dir     # 只產出未壓縮版本，用於快速本機測試
 ```
 
-輸出在 `dist/` 底下。**平常開發不需要重新打包**——`npm start` 直接讀 `src/` 底下的原始碼執行。打包只在你要把成品交給別人時才需要跑一次。
+輸出在 `dist/` 底下。
+
+**方式 C —— 從原始碼執行**
+
+```sh
+git clone https://github.com/rowing195/usage-monitor.git
+cd usage-monitor
+npm install
+npm start
+```
+
+平常開發不需要打包——`npm start` 直接讀 `src/` 底下的原始碼執行。打包（方式 A）只在你要產出可安裝或交給別人的成品時才需要。
 
 ### 接上 Claude 那半
 
