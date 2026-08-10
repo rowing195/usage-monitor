@@ -1,0 +1,430 @@
+:root {
+  /* Source identity. The ring, bar and nub line always wear this. */
+  --accent: #6ba5e0;
+  --claude: #e08a63;
+  --antigravity-claude: #6ec27a;
+
+  /* Alert level. The figures wear this, so identity and urgency coexist. */
+  --severity: #f2e8da;
+  --warn: #e8b45c;
+  --danger: #e0705f;
+  --stale: #8a7d6c;
+
+  /* Warm walnut, lit from above. */
+  --surface-top: #3b3025;
+  --surface-bottom: #241d16;
+  --disc-top: #48392a;
+  --disc-bottom: #2a211a;
+
+  --text: #f2e8da;
+  --text-dim: #b3a288;
+  --line: rgba(255, 236, 208, 0.11);
+  --track: rgba(255, 236, 208, 0.13);
+
+  --idle-opacity: 0.42;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: transparent;
+  overflow: hidden;
+  font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  color: var(--text);
+  user-select: none;
+  cursor: default;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------- Orb ---------- */
+
+/* Centred in a roomier window so the glow can fade out instead of being clipped.
+   Keeping the orb itself at 76px also keeps the margin non-interactive. */
+#orb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 76px;
+  height: 76px;
+  opacity: 1;
+  transition: opacity 400ms ease;
+}
+
+#orb.idle,
+#nub.idle {
+  opacity: var(--idle-opacity);
+}
+
+/* The disc sits under the ring and carries the depth: a soft gradient, a hairline
+   edge, and a faint bloom in the source colour so the orb reads as lit, not flat. */
+#orb::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 28%, var(--disc-top), var(--disc-bottom));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 236, 208, 0.08),
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    0 0 18px -4px var(--accent);
+  transition: box-shadow 300ms ease;
+}
+
+#orb svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.ring-track,
+.ring-value {
+  fill: none;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+}
+
+.ring-track {
+  stroke: var(--track);
+}
+
+.ring-value {
+  stroke: var(--accent);
+  transition: stroke-dashoffset 600ms ease, stroke 300ms ease;
+}
+
+.readout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#orb-pct {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--severity);
+  transition: color 300ms ease;
+}
+
+/* ---------- Nub ---------- */
+
+#nub {
+  width: 100vw;
+  height: 100vh;
+  opacity: 1;
+  transition: opacity 400ms ease;
+}
+
+#nub svg {
+  width: 100%;
+  height: 100%;
+}
+
+#nub-shape {
+  fill: var(--surface-top);
+  stroke: var(--surface-top);
+  /* Rounds the trapezoid without hand-building an arc path. */
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+#nub-line {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke 300ms ease;
+}
+
+/* Hovering lights the nub. Opening it is a click, so a cursor merely passing
+   the edge never expands anything. Declared after .idle to win the tie. */
+#nub:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+#nub:hover #nub-shape {
+  fill: var(--disc-top);
+  stroke: var(--disc-top);
+}
+
+/* Collapsed, there is no figure to colour, so the line carries the alert. */
+#nub.warn #nub-line {
+  stroke: var(--warn);
+}
+
+#nub.danger #nub-line {
+  stroke: var(--danger);
+}
+
+/* ---------- Panel ---------- */
+
+#panel {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--surface-top) 0%, var(--surface-bottom) 100%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* Grain: a few near-vertical repeating gradients at very low contrast read as
+   timber rather than as stripes, and cost nothing but CSS. */
+#panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(91deg, rgba(255, 232, 200, 0.022) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(89deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(90.4deg, rgba(255, 226, 188, 0.014) 0 2px, transparent 2px 23px);
+}
+
+#panel > header,
+#panel > .view,
+#panel > footer {
+  position: relative;
+  z-index: 1;
+}
+
+#panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 15px 11px;
+  border-bottom: 1px solid var(--line);
+}
+
+#panel h1 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+#settings-toggle {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+#settings-toggle:hover,
+#settings-toggle.active {
+  background: rgba(255, 236, 208, 0.1);
+  color: var(--text);
+}
+
+.view {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 15px 8px;
+}
+
+.view::-webkit-scrollbar {
+  width: 8px;
+}
+
+.view::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background-clip: content-box;
+  background-color: rgba(255, 236, 208, 0.16);
+}
+
+#metrics {
+  list-style: none;
+}
+
+.metric {
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255, 236, 208, 0.07);
+}
+
+.metric:last-child {
+  border-bottom: 0;
+}
+
+.metric-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.metric-label {
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-pct {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--severity);
+}
+
+.bar {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 8px -2px var(--accent);
+  transition: width 600ms ease, background 300ms ease;
+}
+
+.metric-note {
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.metric.stale .metric-label {
+  color: var(--stale);
+}
+
+.empty {
+  padding: 22px 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ---------- Settings ---------- */
+
+.field {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 236, 208, 0.07);
+}
+
+.field label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+}
+
+.field-value {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.field input[type="range"] {
+  width: 100%;
+  accent-color: #c08a5a;
+}
+
+.field-hint {
+  margin-top: 7px;
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.danger-button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 9px 10px;
+  border: 1px solid rgba(224, 112, 95, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--danger);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.danger-button:hover {
+  background: rgba(224, 112, 95, 0.12);
+}
+
+#panel footer {
+  padding: 11px 15px 13px;
+  border-top: 1px solid var(--line);
+}
+
+#open-claude,
+.field-button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 236, 208, 0.04);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+#open-claude:hover,
+.field-button:hover {
+  background: rgba(255, 236, 208, 0.1);
+}
+
+/* ---------- Source colour, then alert level ---------- */
+
+.accent-claude {
+  --accent: var(--claude);
+}
+
+.accent-antigravity-claude {
+  --accent: var(--antigravity-claude);
+}
+
+/* Severity colours the figures only, so removing the source label does not
+   cost you the ability to tell which tool is running out. */
+/* Past the warning line the ring gives up the source colour along with the
+   figure — the panel still names which one it was. */
+.warn {
+  --severity: var(--warn);
+  --accent: var(--warn);
+}
+
+.danger {
+  --severity: var(--danger);
+  --accent: var(--danger);
+}
+
+/* Unknown is not a source and not a level, so it takes over both. */
+.stale {
+  --accent: var(--stale);
+  --severity: var(--stale);
+}
