@@ -6,6 +6,7 @@ const path = require('path');
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const providers = require('./providers');
 const statusline = require('./statusline-setup');
+const autostart = require('./autostart');
 
 // Quitting is one click away from the orb, so where it sat has to survive it.
 const STATE_FILE = path.join(os.homedir(), '.usage-monitor', 'window-state.json');
@@ -328,6 +329,9 @@ ipcMain.on('open-claude-usage', () => shell.openExternal('https://claude.ai/sett
 ipcMain.handle('statusline-status', () => statusline.status());
 ipcMain.handle('statusline-install', () => statusline.install());
 ipcMain.handle('statusline-uninstall', () => statusline.uninstall());
+
+ipcMain.handle('autostart-status', () => autostart.status());
+ipcMain.handle('autostart-set', (_e, enabled) => autostart.set(enabled));
 
 ipcMain.on('quit', () => app.quit());
 

@@ -43,6 +43,16 @@
           <p class="field-hint" id="statusline-hint"></p>
         </div>
         <div class="field">
+          <label for="autostart-toggle">
+            開機自動啟動
+            <span class="switch">
+              <input id="autostart-toggle" type="checkbox" disabled />
+              <span class="switch-track"></span>
+            </span>
+          </label>
+          <p class="field-hint" id="autostart-hint"></p>
+        </div>
+        <div class="field">
           <label for="standby-ms">待機時間 <span id="standby-value" class="field-value"></span></label>
           <input id="standby-ms" type="range" min="1000" max="30000" step="1000" />
           <p class="field-hint">沒有動作多久後轉為半透明</p>

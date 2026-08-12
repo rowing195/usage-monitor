@@ -14,5 +14,7 @@ contextBridge.exposeInMainWorld('monitor', {
   statuslineStatus: () => ipcRenderer.invoke('statusline-status'),
   statuslineInstall: () => ipcRenderer.invoke('statusline-install'),
   statuslineUninstall: () => ipcRenderer.invoke('statusline-uninstall'),
+  autostartStatus: () => ipcRenderer.invoke('autostart-status'),
+  autostartSet: (enabled) => ipcRenderer.invoke('autostart-set', enabled),
   quit: () => ipcRenderer.send('quit'),
 });

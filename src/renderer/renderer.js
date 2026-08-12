@@ -30,6 +30,8 @@ const el = {
   statuslineValue: document.getElementById('statusline-value'),
   statuslineAction: document.getElementById('statusline-action'),
   statuslineHint: document.getElementById('statusline-hint'),
+  autostartToggle: document.getElementById('autostart-toggle'),
+  autostartHint: document.getElementById('autostart-hint'),
 };
 
 let state = {
@@ -51,6 +53,9 @@ let collapseTimer = null;
 let statusline = { status: null, needsNode: false };
 // A status line someone else configured is only replaced on a second click.
 let replaceArmed = false;
+
+// null until asked; then 'unavailable' | 'enabled' | 'disabled'.
+let autostart = null;
 
 el.ring.style.strokeDasharray = String(RING_CIRCUMFERENCE);
 
@@ -175,6 +180,17 @@ function renderSettings() {
   el.idleValue.textContent = `${el.idleOpacity.value}%`;
 
   renderStatusline();
+  renderAutostart();
+}
+
+function renderAutostart() {
+  el.autostartToggle.disabled = autostart === null || autostart === 'unavailable';
+  el.autostartToggle.checked = autostart === 'enabled';
+
+  el.autostartHint.textContent =
+    autostart === 'unavailable'
+      ? '免安裝版每次啟動的路徑都不固定，開機自動啟動只在安裝版可用'
+      : '';
 }
 
 function renderStatusline() {
@@ -202,6 +218,11 @@ async function refreshStatusline() {
   statusline = { ...statusline, status: await window.monitor.statuslineStatus() };
   replaceArmed = false;
   renderStatusline();
+}
+
+async function refreshAutostart() {
+  autostart = await window.monitor.autostartStatus();
+  renderAutostart();
 }
 
 function seconds(ms) {
@@ -351,7 +372,10 @@ el.settingsToggle.addEventListener('click', () => {
   renderPanel();
   // Claude Code's settings can change behind the app's back, so the state is
   // re-read every time the page is opened rather than cached from startup.
-  if (showingSettings) refreshStatusline();
+  if (showingSettings) {
+    refreshStatusline();
+    refreshAutostart();
+  }
 });
 
 el.statuslineAction.addEventListener('click', async () => {
@@ -364,6 +388,11 @@ el.statuslineAction.addEventListener('click', async () => {
     replaceArmed = false;
   }
   renderStatusline();
+});
+
+el.autostartToggle.addEventListener('change', async () => {
+  autostart = await window.monitor.autostartSet(el.autostartToggle.checked);
+  renderAutostart();
 });
 
 const bindSlider = (input, key, transform, label) => {
