@@ -335,14 +335,28 @@ ipcMain.handle('autostart-set', (_e, enabled) => autostart.set(enabled));
 
 ipcMain.on('quit', () => app.quit());
 
-app.whenReady().then(() => {
-  settings = loadSettings();
-  statusline.refresh();
-  createWindow();
-  providers.start((next) => {
-    latest = next;
-    send();
+// A second launch — two auto-start mechanisms both firing, a stray double-click
+// — would otherwise spin up a second full orb with nothing to tell them apart.
+// Losing the lock quits before any window or poller starts; holding it means any
+// later launch attempt is handed off here instead of becoming its own instance.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (!win || win.isDestroyed()) return;
+    win.show();
+    win.focus();
   });
-});
 
-app.on('window-all-closed', () => app.quit());
+  app.whenReady().then(() => {
+    settings = loadSettings();
+    statusline.refresh();
+    createWindow();
+    providers.start((next) => {
+      latest = next;
+      send();
+    });
+  });
+
+  app.on('window-all-closed', () => app.quit());
+}
