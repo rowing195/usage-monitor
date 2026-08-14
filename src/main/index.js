@@ -7,6 +7,7 @@ const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const providers = require('./providers');
 const statusline = require('./statusline-setup');
 const autostart = require('./autostart');
+const tray = require('./tray');
 
 // Quitting is one click away from the orb, so where it sat has to survive it.
 const STATE_FILE = path.join(os.homedir(), '.usage-monitor', 'window-state.json');
@@ -352,9 +353,11 @@ if (!app.requestSingleInstanceLock()) {
     settings = loadSettings();
     statusline.refresh();
     createWindow();
+    tray.init(win);
     providers.start((next) => {
       latest = next;
       send();
+      tray.update(next);
     });
   });
 

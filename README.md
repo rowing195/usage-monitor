@@ -32,6 +32,8 @@ This project exists because "usage" dashboards that report token counts don't an
 - **Two quota sources, one glance.** Claude's 5-hour and 7-day rate-limit windows, plus Antigravity's pooled model quotas (11 models collapse into 2 real pools), ranked together on one 0–100 scale.
 - **Honest about stale data.** A reading past its freshness window turns grey and shows "as of HH:MM" instead of guessing — no interpolation, no fake precision.
 - **Dock, don't clutter.** Drag to any screen edge to collapse into a small tab; hover lights it up, click reopens it.
+- **Never running invisibly.** A tray icon in the notification area answers "is it actually on?" without hunting for a faded orb. Hover it for the tightest quota reading; left-click to show or hide the orb, right-click for the rest.
+- **Launch at login.** One switch in the settings panel registers the app with Windows — installed builds only, since a portable build has no stable path to register.
 - **Color-only alerts.** No popups, no notification spam — amber at 70%, red at 90%.
 - **In-app Claude Code integration.** Install or remove the required status line straight from the settings panel — no manual JSON editing.
 - **Antigravity without an extra CLI.** Talks directly to the local language server's Connect API; no dependency on the (slow, occasionally broken) `antigravity-usage` tool.
@@ -52,8 +54,10 @@ src/
 ├── main/
 │   ├── index.js              window state machine, dragging, docking, IPC
 │   ├── providers.js           the two data sources: fetch, normalize, staleness, ranking
+│   ├── autostart.js           the launch-at-login registration behind the settings switch
 │   ├── resources.js           resolves scripts/ path in dev vs. packaged builds
-│   └── statusline-setup.js    installs/removes the Claude Code status line from the app
+│   ├── statusline-setup.js    installs/removes the Claude Code status line from the app
+│   └── tray.js                notification-area icon: tooltip, show/hide, context menu
 ├── preload.js                 contextBridge between main and renderer
 └── renderer/
     ├── index.html             orb / docked tab / panel — three states, one page
@@ -119,7 +123,8 @@ Claude's percentages only exist locally through Claude Code's status line. Open 
 - **The Claude side will often show grey.** If your main usage is the Claude desktop app rather than Claude Code, quota it burns won't show up until you next send a message in Claude Code — there's no compliant way around this (see HANDOFF.md for what was tried and rejected).
 - **Windows only.** The window-docking math, drag handling, and Antigravity discovery script are all Windows-specific.
 - **No code signing.** Windows SmartScreen will warn on first run of a downloaded build; choose "More info → Run anyway."
-- **No auto-start on login** (a deliberate v1 scope cut).
+- **Launch at login is installed-builds-only.** A portable build re-unpacks into a fresh temp directory every launch, so there is no stable path to hand the registry — the switch is greyed out there, and in a dev checkout.
+- **Windows 11 hides new tray icons.** The first launch tucks the icon into the overflow flyout behind the `^` chevron; drag it onto the taskbar to keep it in sight.
 
 ## License
 

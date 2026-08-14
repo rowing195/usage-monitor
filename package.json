@@ -1,6 +1,6 @@
 {
   "name": "usage-monitor",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "Floating orb showing Claude and Antigravity quota headroom",
   "author": "ian",
@@ -29,7 +29,8 @@
       }
     ],
     "win": {
-      "target": ["nsis", "portable"]
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,

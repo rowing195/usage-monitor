@@ -32,6 +32,8 @@ Usage Monitor 是一顆 Windows 上常駐置頂的小懸浮球，追蹤的是兩
 - **兩個額度來源，一眼掌握。** Claude 的 5 小時／7 天兩個 rate-limit 視窗，加上 Antigravity 的池化模型額度（11 個模型收斂成 2 個真正的池），統一換算到 0–100 排在一起比較。
 - **老實面對過期資料。** 超過新鮮度門檻的讀數會轉灰，標示「資料截至 HH:MM」，不做內插、不假裝精準。
 - **收合不佔位。** 拖到任一螢幕邊緣就收成一小條梯形，懸停點亮、點擊展開。
+- **不會默默在跑。** 通知區域（右下角）有常駐圖示，不必去找那顆半透明的球才能確認「到底有沒有開」。滑鼠停上去看最吃緊的那筆額度，左鍵顯示／隱藏懸浮球，右鍵叫出其餘選項。
+- **開機自動啟動。** 設定面板裡一個開關就能向 Windows 註冊——僅限安裝版，portable 版沒有固定路徑可註冊。
 - **只用顏色示警。** 不彈通知、不轟炸提醒——70% 琥珀色、90% 紅色。
 - **App 內建 Claude Code 整合。** 在設定面板裡按一下就能安裝或移除必要的 statusline，不用手動編輯 JSON。
 - **Antigravity 不需要額外的 CLI。** 直接打本機 language server 的 Connect API，不依賴那套（又慢又偶爾故障的）`antigravity-usage` 工具。
@@ -52,8 +54,10 @@ src/
 ├── main/
 │   ├── index.js              視窗狀態機、拖曳、收合吸附、IPC
 │   ├── providers.js           兩個資料來源：抓取、正規化、陳舊判定、排名
+│   ├── autostart.js           設定開關背後的開機自動啟動註冊
 │   ├── resources.js           依開發／打包環境解析 scripts/ 的實際路徑
-│   └── statusline-setup.js    從 app 內安裝／移除 Claude Code statusline
+│   ├── statusline-setup.js    從 app 內安裝／移除 Claude Code statusline
+│   └── tray.js                通知區域圖示：提示文字、顯示／隱藏、右鍵選單
 ├── preload.js                 main 與 renderer 之間的 contextBridge
 └── renderer/
     ├── index.html             球 / 收合梯形 / 面板，三態同頁
@@ -121,7 +125,8 @@ Claude 的百分比只能透過 Claude Code 的 statusline 在本機取得。打
 - **Claude 那半經常會是灰的。** 如果你主力用的是 Claude 桌面程式而非 Claude Code，桌面程式燒掉的額度不會即時反映，要等你下次在 Claude Code 講話才會補上——這不是 bug，合規的替代方案不存在（詳見 HANDOFF.md 裡已查證並排除的方案）。
 - **僅支援 Windows。** 視窗吸附的幾何運算、拖曳處理、Antigravity 探索腳本都是 Windows 專屬。
 - **未經程式碼簽章。** 下載的版本第一次執行會被 Windows SmartScreen 擋下，選「其他資訊 → 仍要執行」即可。
-- **不支援開機自啟**（v1 刻意排除的範圍）。
+- **開機自動啟動僅限安裝版。** Portable 版每次啟動都解壓到新的暫存目錄，沒有固定路徑可以寫進登錄檔，所以那個開關在 portable 版和開發環境下是灰的。
+- **Windows 11 預設會藏起新的托盤圖示。** 第一次啟動時圖示會被收進 `^` 後面的溢位選單，把它拖到工作列上才會一直看得到。
 
 ## 授權
 
