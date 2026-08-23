@@ -30,6 +30,10 @@ This project exists because "usage" dashboards that report token counts don't an
 ## Features
 
 - **Two quota sources, one glance.** Claude's 5-hour and 7-day rate-limit windows, plus Antigravity's pooled model quotas (11 models collapse into 2 real pools), ranked together on one 0–100 scale.
+- **Truly resilient always-on-top (Screen-saver tier).** High-priority topmost ranking and full-screen / multi-workspace support (`setVisibleOnAllWorkspaces`) with self-healing window lifecycle guards that survive focus shifts and Win+D.
+- **Fluid morphing & spring physics.** Elastic spring overshoot on appearance, 3D hover highlights, smooth damped panel spring-in with staggered row fade-ins, animated numeric ticker, and elastic ring easing.
+- **Breathing glow & urgency pulses.** Subtle 4s breathing glow during standby; soft pulsing alert waves automatically trigger at 70% (amber) and 90% (red) thresholds.
+- **60fps GPU hardware acceleration.** Full compositing layer isolation ensures buttery-smooth rendering with zero jank on Windows transparent windows.
 - **Honest about stale data.** A reading past its freshness window turns grey and shows "as of HH:MM" instead of guessing — no interpolation, no fake precision.
 - **Dock, don't clutter.** Drag to any screen edge to collapse into a small tab; hover lights it up, click reopens it.
 - **Never running invisibly.** A tray icon in the notification area answers "is it actually on?" without hunting for a faded orb. Hover it for the tightest quota reading; left-click to show or hide the orb, right-click for the rest.
