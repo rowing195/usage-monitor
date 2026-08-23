@@ -97,13 +97,69 @@ function render() {
   else restartTimers();
 }
 
+let currentDisplayPct = null;
+let pctAnimFrame = null;
+
+function animatePct(targetPct) {
+  if (typeof targetPct !== 'number' || isNaN(targetPct)) {
+    if (pctAnimFrame) {
+      cancelAnimationFrame(pctAnimFrame);
+      pctAnimFrame = null;
+    }
+    el.pct.textContent = '--';
+    currentDisplayPct = null;
+    return;
+  }
+
+  if (currentDisplayPct === null) {
+    currentDisplayPct = targetPct;
+    el.pct.textContent = `${Math.round(targetPct)}%`;
+    return;
+  }
+
+  if (pctAnimFrame) {
+    cancelAnimationFrame(pctAnimFrame);
+    pctAnimFrame = null;
+  }
+
+  const startPct = currentDisplayPct;
+  const target = targetPct;
+  if (Math.abs(target - startPct) < 0.1) {
+    currentDisplayPct = target;
+    el.pct.textContent = `${Math.round(target)}%`;
+    return;
+  }
+
+  const startTime = performance.now();
+  const duration = 650;
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 4);
+    const current = startPct + (target - startPct) * ease;
+    currentDisplayPct = current;
+    el.pct.textContent = `${Math.round(current)}%`;
+
+    if (progress < 1) {
+      pctAnimFrame = requestAnimationFrame(step);
+    } else {
+      currentDisplayPct = target;
+      el.pct.textContent = `${Math.round(target)}%`;
+      pctAnimFrame = null;
+    }
+  }
+
+  pctAnimFrame = requestAnimationFrame(step);
+}
+
 function renderOrb() {
   const m = state.highest;
   const pct = m ? m.usedPct : 0;
 
   el.orb.className = classesFor(m, true);
   el.ring.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - Math.min(pct, 100) / 100));
-  el.pct.textContent = m ? `${Math.round(pct)}%` : '--';
+  animatePct(m && typeof m.usedPct === 'number' ? m.usedPct : null);
 }
 
 function renderNub() {

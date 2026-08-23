@@ -22,6 +22,11 @@
   --track: rgba(255, 236, 208, 0.13);
 
   --idle-opacity: 0.42;
+
+  /* Motion and physics curves */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -49,6 +54,15 @@ body {
   display: none !important;
 }
 
+/* GPU Hardware compositing layers */
+#orb,
+#nub,
+#panel {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* ---------- Orb ---------- */
 
 /* Centred in a roomier window so the glow can fade out instead of being clipped.
@@ -57,16 +71,28 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1);
   width: 76px;
   height: 76px;
   opacity: 1;
-  transition: opacity 400ms ease;
+  transition: opacity 350ms var(--ease-out-expo),
+              transform 350ms var(--ease-spring),
+              filter 300ms var(--ease-smooth);
+  animation: orb-appear 450ms var(--ease-spring);
 }
 
-#orb.idle,
-#nub.idle {
+#orb:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+#orb:active {
+  transform: translate(-50%, -50%) scale(0.95);
+  transition: transform 120ms ease;
+}
+
+#orb.idle {
   opacity: var(--idle-opacity);
+  animation: orb-standby-breath 4s ease-in-out infinite;
 }
 
 /* The disc sits under the ring and carries the depth: a soft gradient, a hairline
@@ -81,7 +107,22 @@ body {
     inset 0 0 0 1px rgba(255, 236, 208, 0.08),
     0 4px 14px rgba(0, 0, 0, 0.45),
     0 0 18px -4px var(--accent);
-  transition: box-shadow 300ms ease;
+  transition: box-shadow 350ms var(--ease-out-expo), transform 350ms var(--ease-out-expo);
+}
+
+#orb:hover::before {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 236, 208, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 24px -2px var(--accent);
+}
+
+#orb.warn::before {
+  animation: pulse-glow-warn 2.8s ease-in-out infinite;
+}
+
+#orb.danger::before {
+  animation: pulse-glow-danger 1.8s ease-in-out infinite;
 }
 
 #orb svg {
@@ -103,7 +144,8 @@ body {
 
 .ring-value {
   stroke: var(--accent);
-  transition: stroke-dashoffset 600ms ease, stroke 300ms ease;
+  transition: stroke-dashoffset 850ms cubic-bezier(0.34, 1.25, 0.64, 1), stroke 400ms var(--ease-smooth);
+  filter: drop-shadow(0 0 2px var(--accent));
 }
 
 .readout {
@@ -120,7 +162,7 @@ body {
   font-weight: 600;
   letter-spacing: -0.4px;
   color: var(--severity);
-  transition: color 300ms ease;
+  transition: color 300ms var(--ease-smooth);
 }
 
 /* ---------- Nub ---------- */
@@ -129,7 +171,8 @@ body {
   width: 100vw;
   height: 100vh;
   opacity: 1;
-  transition: opacity 400ms ease;
+  transition: opacity 350ms var(--ease-out-expo), transform 350ms var(--ease-spring);
+  animation: nub-appear 350ms var(--ease-out-expo);
 }
 
 #nub svg {
@@ -140,23 +183,31 @@ body {
 #nub-shape {
   fill: var(--surface-top);
   stroke: var(--surface-top);
-  /* Rounds the trapezoid without hand-building an arc path. */
   stroke-width: 5;
   stroke-linejoin: round;
+  transition: fill 250ms ease, stroke 250ms ease;
 }
 
 #nub-line {
   stroke: var(--accent);
   stroke-width: 2.5;
   stroke-linecap: round;
-  transition: stroke 300ms ease;
+  transition: stroke 300ms ease, stroke-width 250ms ease;
 }
 
-/* Hovering lights the nub. Opening it is a click, so a cursor merely passing
-   the edge never expands anything. Declared after .idle to win the tie. */
 #nub:hover {
   opacity: 1;
   cursor: pointer;
+  transform: scale(1.05);
+}
+
+#nub:active {
+  transform: scale(0.95);
+}
+
+#nub.idle {
+  opacity: var(--idle-opacity);
+  animation: nub-standby-breath 4s ease-in-out infinite;
 }
 
 #nub:hover #nub-shape {
@@ -164,7 +215,11 @@ body {
   stroke: var(--disc-top);
 }
 
-/* Collapsed, there is no figure to colour, so the line carries the alert. */
+#nub:hover #nub-line {
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 3px var(--accent));
+}
+
 #nub.warn #nub-line {
   stroke: var(--warn);
 }
@@ -184,12 +239,12 @@ body {
   background: linear-gradient(180deg, var(--surface-top) 0%, var(--surface-bottom) 100%);
   border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 236, 208, 0.06);
   overflow: hidden;
+  animation: panel-spring-in 380ms var(--ease-out-expo);
+  transform-origin: center center;
 }
 
-/* Grain: a few near-vertical repeating gradients at very low contrast read as
-   timber rather than as stripes, and cost nothing but CSS. */
 #panel::before {
   content: "";
   position: absolute;
@@ -235,13 +290,19 @@ body {
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease;
+  transition: background 180ms ease, color 180ms ease, transform 350ms var(--ease-spring);
 }
 
-#settings-toggle:hover,
+#settings-toggle:hover {
+  background: rgba(255, 236, 208, 0.1);
+  color: var(--text);
+  transform: rotate(30deg);
+}
+
 #settings-toggle.active {
   background: rgba(255, 236, 208, 0.1);
   color: var(--text);
+  transform: rotate(90deg);
 }
 
 .view {
@@ -268,7 +329,15 @@ body {
 .metric {
   padding: 11px 0;
   border-bottom: 1px solid rgba(255, 236, 208, 0.07);
+  animation: metric-fade-in 300ms var(--ease-out-expo) backwards;
 }
+
+.metric:nth-child(1) { animation-delay: 30ms; }
+.metric:nth-child(2) { animation-delay: 60ms; }
+.metric:nth-child(3) { animation-delay: 90ms; }
+.metric:nth-child(4) { animation-delay: 120ms; }
+.metric:nth-child(5) { animation-delay: 150ms; }
+.metric:nth-child(6) { animation-delay: 180ms; }
 
 .metric:last-child {
   border-bottom: 0;
@@ -309,7 +378,7 @@ body {
   border-radius: 3px;
   background: var(--accent);
   box-shadow: 0 0 8px -2px var(--accent);
-  transition: width 600ms ease, background 300ms ease;
+  transition: width 650ms var(--ease-out-expo), background 300ms ease;
 }
 
 .metric-note {
@@ -461,10 +530,6 @@ body {
   --accent: var(--antigravity-claude);
 }
 
-/* Severity colours the figures only, so removing the source label does not
-   cost you the ability to tell which tool is running out. */
-/* Past the warning line the ring gives up the source colour along with the
-   figure — the panel still names which one it was. */
 .warn {
   --severity: var(--warn);
   --accent: var(--warn);
@@ -475,8 +540,106 @@ body {
   --accent: var(--danger);
 }
 
-/* Unknown is not a source and not a level, so it takes over both. */
 .stale {
   --accent: var(--stale);
   --severity: var(--stale);
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes orb-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+  65% {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes orb-standby-breath {
+  0%, 100% {
+    opacity: var(--idle-opacity);
+    filter: brightness(1);
+  }
+  50% {
+    opacity: calc(var(--idle-opacity) + 0.14);
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes pulse-glow-warn {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 236, 208, 0.08),
+      0 4px 14px rgba(0, 0, 0, 0.45),
+      0 0 16px -4px var(--warn);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 236, 208, 0.18),
+      0 4px 18px rgba(0, 0, 0, 0.5),
+      0 0 28px 0px var(--warn);
+  }
+}
+
+@keyframes pulse-glow-danger {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 236, 208, 0.12),
+      0 4px 14px rgba(0, 0, 0, 0.45),
+      0 0 18px -3px var(--danger);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 236, 208, 0.26),
+      0 4px 22px rgba(0, 0, 0, 0.55),
+      0 0 34px 2px var(--danger);
+  }
+}
+
+@keyframes nub-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes nub-standby-breath {
+  0%, 100% {
+    opacity: var(--idle-opacity);
+  }
+  50% {
+    opacity: calc(var(--idle-opacity) + 0.16);
+  }
+}
+
+@keyframes panel-spring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes metric-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
