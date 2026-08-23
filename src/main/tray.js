@@ -21,8 +21,16 @@ function tooltip(latest) {
 }
 
 function toggleWindow() {
-  if (win.isVisible()) win.hide();
-  else win.show();
+  if (win.isVisible()) {
+    win.hide();
+  } else {
+    win.show();
+    if (typeof win.setAlwaysOnTop === 'function') {
+      win.setAlwaysOnTop(true, 'screen-saver');
+      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    }
+    win.focus();
+  }
 }
 
 // Built on every right-click rather than cached: both the show/hide label and the

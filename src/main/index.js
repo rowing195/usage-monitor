@@ -92,6 +92,12 @@ function panelBounds() {
   };
 }
 
+function enforceAlwaysOnTop() {
+  if (!win || win.isDestroyed()) return;
+  win.setAlwaysOnTop(true, 'screen-saver');
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+}
+
 function applyLayout() {
   if (mode === 'panel') {
     win.setBounds(panelBounds());
@@ -100,6 +106,7 @@ function applyLayout() {
   } else {
     win.setBounds({ ...win.getBounds(), ...ORB });
   }
+  enforceAlwaysOnTop();
   send();
 }
 
@@ -204,6 +211,8 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, '..', 'preload.js') },
   });
 
+  enforceAlwaysOnTop();
+
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
   // Fires while the window still exists, unlike before-quit, which runs after
@@ -213,8 +222,16 @@ function createWindow() {
   // Clicking away from the panel returns to the orb.
   win.on('blur', closePanel);
 
+  // Keep topmost state resilient across visibility / restore events
+  win.on('show', enforceAlwaysOnTop);
+  win.on('restore', enforceAlwaysOnTop);
+  win.on('minimize', () => win.restore());
+
   // Restores the docked layout when the saved state had the orb on an edge.
-  win.webContents.on('did-finish-load', applyLayout);
+  win.webContents.on('did-finish-load', () => {
+    applyLayout();
+    enforceAlwaysOnTop();
+  });
 }
 
 // Returns the window to the orb's old spot and lets it settle back onto its
@@ -347,6 +364,7 @@ if (!app.requestSingleInstanceLock()) {
     if (!win || win.isDestroyed()) return;
     win.show();
     win.focus();
+    enforceAlwaysOnTop();
   });
 
   app.whenReady().then(() => {
@@ -358,6 +376,7 @@ if (!app.requestSingleInstanceLock()) {
       latest = next;
       send();
       tray.update(next);
+      enforceAlwaysOnTop();
     });
   });
 
