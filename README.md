@@ -30,6 +30,7 @@ This project exists because "usage" dashboards that report token counts don't an
 ## Features
 
 - **Two quota sources, one glance.** Claude's 5-hour and 7-day rate-limit windows, plus Antigravity's pooled model quotas (11 models collapse into 2 real pools), ranked together on one 0–100 scale.
+- **Synchronized Orb & Tab with Smart Lock.** The orb and docked tab stay in sync, displaying the tool you're actively using. While using Claude, if your 7-day weekly quota reaches ≥ 90%, it automatically locks to the 7-day metric with a red alert; switching to Antigravity seamlessly displays its active model pool.
 - **Truly resilient always-on-top (Screen-saver tier).** High-priority topmost ranking and full-screen / multi-workspace support (`setVisibleOnAllWorkspaces`) with self-healing window lifecycle guards that survive focus shifts and Win+D.
 - **Fluid morphing & spring physics.** Elastic spring overshoot on appearance, 3D hover highlights, smooth damped panel spring-in with staggered row fade-ins, animated numeric ticker, and elastic ring easing.
 - **Breathing glow & urgency pulses.** Subtle 4s breathing glow during standby; soft pulsing alert waves automatically trigger at 70% (amber) and 90% (red) thresholds.

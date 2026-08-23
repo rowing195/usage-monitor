@@ -253,12 +253,22 @@ function summarize(metrics, now = Date.now()) {
   const pool = fresh.length ? fresh : rankable;
   const highest = pool.length ? pool.reduce((a, b) => (b.usedPct > a.usedPct ? b : a)) : null;
 
-  // The collapsed nub shows what is actually being consumed, otherwise it would
-  // sit permanently on whichever window happens to be the most exhausted.
+  // Determine the most recently consumed metric
   const used = pool.filter((m) => m.lastUsedAt);
-  const recent = used.length ? used.reduce((a, b) => (b.lastUsedAt > a.lastUsedAt ? b : a)) : highest;
+  let recent = used.length ? used.reduce((a, b) => (b.lastUsedAt > a.lastUsedAt ? b : a)) : highest;
 
-  return { metrics: decorated, highest, recent };
+  // Special rule: When Claude is the active tool in use, if Claude 7-day quota >= 90%,
+  // force the display to Claude 7-day (weekly danger override).
+  // If Antigravity is being used, keep displaying Antigravity.
+  const claude7d = pool.find((m) => m.key === 'claude:7d');
+  if (recent?.source === 'claude' && claude7d && typeof claude7d.usedPct === 'number' && claude7d.usedPct >= 90) {
+    recent = claude7d;
+  }
+
+  // Synchronize orb and nub to display the same active target
+  const target = recent ?? highest;
+
+  return { metrics: decorated, highest: target, recent: target };
 }
 
 function start(onUpdate) {
