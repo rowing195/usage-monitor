@@ -22,7 +22,7 @@ const DEFAULT_SETTINGS = {
 // The window is larger than the orb itself: the disc is 62px across and its
 // glow needs room to fall off before the window clips it. The extra area is
 // transparent and not interactive — only the disc responds to the pointer.
-const ORB = { width: 96, height: 96 };
+const ORB = { width: 120, height: 120 };
 
 // Windows will not make a window thinner than roughly 32x39 (SM_CYMINTRACK), so
 // the collapsed window sits at that floor and the renderer draws its sliver
