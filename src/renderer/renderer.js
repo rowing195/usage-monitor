@@ -5,7 +5,9 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * 27;
 // Every look is a token swap on :root, so a theme is nothing but a class name.
 const THEMES = [
   { id: 'wood', label: '木質' },
+  { id: 'glass', label: '玻璃' },
   { id: 'gauge', label: '儀器' },
+  { id: 'paper', label: '紙墨' },
   { id: 'crt', label: '磷光' },
 ];
 

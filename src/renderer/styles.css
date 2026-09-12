@@ -582,7 +582,7 @@ body {
 
 .theme-picker {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .theme-option {
@@ -629,6 +629,18 @@ body {
   border: 3px solid #d98b4a;
   background: radial-gradient(circle at 50% 34%, #1d2022, #0e1012);
   box-shadow: 0 0 0 1px #5a5e63, inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.swatch-glass {
+  border: 3px solid #f0955f;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+.swatch-paper {
+  border: 3px solid #b84a28;
+  background: #faf7f0;
+  box-shadow: 2px 2px 0 0 rgba(28, 26, 22, 0.3);
 }
 
 .swatch-crt {
@@ -1060,4 +1072,222 @@ body {
 .theme-crt #open-claude:hover,
 .theme-crt .field-button:hover {
   background: rgba(var(--overlay-rgb), 0.12);
+}
+
+/* ---------- Theme: obsidian glass ---------- */
+
+/* No backdrop-filter anywhere below, deliberately: the backdrop of a transparent
+   window is the page, and there is nothing behind the page to blur. What reads
+   as glass here is the window's own transparency — the desktop comes through
+   sharp rather than frosted. The surface tokens carry alpha so the panel and
+   disc gradients turn translucent without overriding either rule. */
+.theme-glass {
+  --accent: #f0955f;
+  --claude: #f0955f;
+  --antigravity-claude: #4fd6a0;
+
+  --severity: #ffffff;
+  --warn: #f5c46b;
+  --danger: #ff6b6b;
+  --danger-rgb: 255, 107, 107;
+  --stale: #6f7885;
+
+  --surface-top: rgba(26, 29, 34, 0.66);
+  --surface-bottom: rgba(14, 16, 20, 0.72);
+  --surface-angle: 180deg;
+  --disc-top: rgba(24, 27, 33, 0.58);
+  --disc-bottom: rgba(12, 14, 18, 0.64);
+
+  --text: #f0f2f5;
+  --text-dim: #8b939e;
+
+  --overlay-rgb: 255, 255, 255;
+  --line: rgba(var(--overlay-rgb), 0.09);
+  --track: rgba(var(--overlay-rgb), 0.1);
+
+  /* Cool, to match the rest of the system chrome rather than the source colour. */
+  --control: #5aa9f0;
+  --control-rgb: 90, 169, 240;
+
+  --grain: none;
+
+  --radius-panel: 8px;
+  --radius-control: 6px;
+  --radius-small: 6px;
+
+  --ring-w: 4;
+}
+
+/* The one detail that sells thickness: a bright lip along the top edge. */
+.theme-glass #orb::before {
+  box-shadow:
+    inset 0 1px 0 0 rgba(var(--overlay-rgb), 0.22),
+    inset 0 0 0 1px rgba(var(--overlay-rgb), 0.1),
+    0 6px 18px rgba(var(--shadow-rgb), 0.45);
+}
+
+.theme-glass #orb:hover::before {
+  box-shadow:
+    inset 0 1px 0 0 rgba(var(--overlay-rgb), 0.32),
+    inset 0 0 0 1px rgba(var(--overlay-rgb), 0.16),
+    0 8px 22px rgba(var(--shadow-rgb), 0.5),
+    0 0 20px -6px var(--accent);
+}
+
+.theme-glass #panel {
+  box-shadow: inset 0 1px 0 0 rgba(var(--overlay-rgb), 0.14);
+}
+
+.theme-glass .bar {
+  border-radius: 2px;
+}
+
+.theme-glass .bar span {
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+/* ---------- Theme: paper and ink ---------- */
+
+/* The only theme that inverts the app, so it is the only one that has to move
+   the overlay tint from warm white to ink. Nothing glows: no bloom on the disc,
+   no shadow on the bars, flat fills throughout. */
+.theme-paper {
+  --accent: #b84a28;
+  --claude: #b84a28;
+  --antigravity-claude: #2f6b46;
+
+  --severity: #1c1a16;
+  --warn: #a8761a;
+  --danger: #a82e1e;
+  --danger-rgb: 168, 46, 30;
+  --stale: #a29b8d;
+
+  --surface-top: #faf7f0;
+  --surface-bottom: #f2eee3;
+  --surface-angle: 180deg;
+  --disc-top: #faf7f0;
+  --disc-bottom: #f4f0e6;
+
+  --text: #1c1a16;
+  --text-dim: #6b655a;
+
+  --overlay-rgb: 28, 26, 22;
+  --shadow-rgb: 28, 26, 22;
+  --line: rgba(var(--overlay-rgb), 0.18);
+  --track: rgba(var(--overlay-rgb), 0.13);
+
+  --control: #b84a28;
+  --control-rgb: 184, 74, 40;
+
+  --grain: none;
+
+  --radius-panel: 5px;
+  --radius-control: 3px;
+  --radius-small: 3px;
+
+  /* Newsreader is not on the machine and a webfont would have to ship as a
+     binary, so the figures use the serif Windows already has. */
+  --font-num: Georgia, "Times New Roman", serif;
+}
+
+/* Flat stock with a hard offset shadow — the only depth in the theme, and the
+   one place there is room for it, since the orb window is larger than the orb. */
+.theme-paper #orb::before {
+  inset: 6px;
+  background: var(--disc-top);
+  box-shadow: 2px 3px 0 0 rgba(var(--shadow-rgb), 0.22);
+}
+
+.theme-paper #orb:hover::before {
+  box-shadow: 3px 4px 0 0 rgba(var(--shadow-rgb), 0.3);
+}
+
+/* Print does not pulse. At the danger line the whole card goes to solid ink
+   instead — louder than any glow, and it still works in greyscale. */
+.theme-paper #orb.warn::before {
+  animation: none;
+  box-shadow: 2px 3px 0 0 rgba(var(--shadow-rgb), 0.26);
+}
+
+.theme-paper #orb.danger::before {
+  animation: none;
+  background: var(--danger);
+  box-shadow: 2px 3px 0 0 rgba(var(--shadow-rgb), 0.28);
+}
+
+.theme-paper #orb.danger .ring-track {
+  stroke: rgba(250, 247, 240, 0.24);
+}
+
+.theme-paper #orb.danger .ring-value {
+  stroke: #faf7f0;
+}
+
+.theme-paper #orb.danger #orb-pct {
+  color: #faf7f0;
+}
+
+.theme-paper .ring-value {
+  stroke-linecap: butt;
+  filter: none;
+}
+
+.theme-paper #orb-pct {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* A light element dissolving into a light desktop reads as mush rather than as
+   absence, so standby drains the ink instead of the card: the same slider, over
+   a compressed range, with the colour going first. */
+.theme-paper #orb.idle,
+.theme-paper #nub.idle {
+  opacity: calc(0.55 + var(--idle-opacity) * 0.45);
+  filter: saturate(0.3);
+  animation: paper-standby-breath 4s ease-in-out infinite;
+}
+
+.theme-paper #panel {
+  box-shadow: inset 0 0 0 1px rgba(var(--overlay-rgb), 0.05);
+}
+
+.theme-paper .bar {
+  height: 8px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(var(--overlay-rgb), 0.22);
+}
+
+.theme-paper .bar span {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.theme-paper #open-claude,
+.theme-paper .field-button {
+  border-color: rgba(var(--overlay-rgb), 0.3);
+  background: transparent;
+}
+
+.theme-paper #open-claude:hover,
+.theme-paper .field-button:hover {
+  background: rgba(var(--overlay-rgb), 0.07);
+}
+
+.theme-paper .switch-track {
+  background: rgba(var(--overlay-rgb), 0.16);
+}
+
+@keyframes paper-standby-breath {
+  0%,
+  100% {
+    opacity: calc(0.55 + var(--idle-opacity) * 0.45);
+    filter: saturate(0.3);
+  }
+  50% {
+    opacity: calc(0.63 + var(--idle-opacity) * 0.45);
+    filter: saturate(0.55);
+  }
 }
