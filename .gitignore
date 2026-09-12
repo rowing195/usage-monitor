@@ -2,3 +2,6 @@
 node_modules/
 dist/
 *.log
+
+# Design canvas working files (seeded into a published artifact, not shipped).
+.design/

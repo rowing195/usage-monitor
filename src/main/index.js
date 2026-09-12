@@ -14,6 +14,7 @@ const STATE_FILE = path.join(os.homedir(), '.usage-monitor', 'window-state.json'
 const SETTINGS_FILE = path.join(os.homedir(), '.usage-monitor', 'settings.json');
 
 const DEFAULT_SETTINGS = {
+  theme: 'wood', // Which look the renderer wears; see the themes in styles.css.
   idleOpacity: 0.42,
   standbyMs: 5000, // Going quiet: fade to the idle opacity.
   collapseMs: 5000, // Going quiet: re-evaluate docking and collapse.

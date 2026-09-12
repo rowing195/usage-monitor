@@ -8,18 +8,46 @@
   --severity: #f2e8da;
   --warn: #e8b45c;
   --danger: #e0705f;
+  --danger-rgb: 224, 112, 95;
   --stale: #8a7d6c;
 
   /* Warm walnut, lit from above. */
   --surface-top: #3b3025;
   --surface-bottom: #241d16;
+  --surface-angle: 180deg;
   --disc-top: #48392a;
   --disc-bottom: #2a211a;
 
   --text: #f2e8da;
   --text-dim: #b3a288;
-  --line: rgba(255, 236, 208, 0.11);
-  --track: rgba(255, 236, 208, 0.13);
+
+  /* Everything laid over a surface — hairlines, button fills, the scrollbar —
+     is this one tint at varying alpha. A theme that inverts the app swaps it
+     once here, so it has to carry the colour, not just the opacity. */
+  --overlay-rgb: 255, 236, 208;
+  --shadow-rgb: 0, 0, 0;
+  --line: rgba(var(--overlay-rgb), 0.11);
+  --track: rgba(var(--overlay-rgb), 0.13);
+
+  /* The sliders and the switch, which follow the theme rather than a source. */
+  --control: #c08a5a;
+  --control-rgb: 192, 138, 90;
+
+  /* The panel's surface texture. A theme that wants none sets it to none. */
+  --grain:
+    repeating-linear-gradient(91deg, rgba(255, 232, 200, 0.022) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(89deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(90.4deg, rgba(255, 226, 188, 0.014) 0 2px, transparent 2px 23px);
+
+  --radius-panel: 14px;
+  --radius-control: 8px;
+  --radius-small: 6px;
+
+  --ring-w: 5.5;
+  --nub-w: 2.5;
+
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-num: var(--font-ui);
 
   --idle-opacity: 0.42;
 
@@ -44,7 +72,7 @@ body {
 body {
   background: transparent;
   overflow: hidden;
-  font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font: 13px/1.45 var(--font-ui);
   color: var(--text);
   user-select: none;
   cursor: default;
@@ -104,16 +132,16 @@ body {
   border-radius: 50%;
   background: radial-gradient(circle at 50% 28%, var(--disc-top), var(--disc-bottom));
   box-shadow:
-    inset 0 0 0 1px rgba(255, 236, 208, 0.08),
-    0 4px 12px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(var(--overlay-rgb), 0.08),
+    0 4px 12px rgba(var(--shadow-rgb), 0.45),
     0 0 16px -4px var(--accent);
   transition: box-shadow 350ms var(--ease-out-expo), transform 350ms var(--ease-out-expo);
 }
 
 #orb:hover::before {
   box-shadow:
-    inset 0 0 0 1px rgba(255, 236, 208, 0.15),
-    0 6px 16px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(var(--overlay-rgb), 0.15),
+    0 6px 16px rgba(var(--shadow-rgb), 0.5),
     0 0 20px -2px var(--accent);
 }
 
@@ -134,7 +162,7 @@ body {
 .ring-track,
 .ring-value {
   fill: none;
-  stroke-width: 5.5;
+  stroke-width: var(--ring-w);
   stroke-linecap: round;
 }
 
@@ -142,10 +170,40 @@ body {
   stroke: var(--track);
 }
 
+/* The trailing afterimage. Off by default; a theme gives it a transition slow
+   enough to fall behind the ring it shares a target with. */
+.ring-ghost {
+  display: none;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: var(--ring-w);
+  stroke-linecap: round;
+  opacity: 0.28;
+}
+
 .ring-value {
   stroke: var(--accent);
   transition: stroke-dashoffset 850ms cubic-bezier(0.34, 1.25, 0.64, 1), stroke 400ms var(--ease-smooth);
   filter: drop-shadow(0 0 2px var(--accent));
+}
+
+/* Graduations round the dial. Hidden unless a theme asks for them; the two
+   threshold marks are coloured by the orb's severity class, not by script. */
+.ticks {
+  display: none;
+  position: absolute;
+  inset: 0;
+}
+
+.tick {
+  stroke: var(--tick);
+  stroke-width: 1.1;
+  transition: stroke 300ms var(--ease-smooth), stroke-width 300ms var(--ease-smooth);
+}
+
+.tick.major {
+  stroke: var(--tick-major);
+  stroke-width: 1.6;
 }
 
 .readout {
@@ -158,6 +216,7 @@ body {
 }
 
 #orb-pct {
+  font-family: var(--font-num);
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.4px;
@@ -190,7 +249,7 @@ body {
 
 #nub-line {
   stroke: var(--accent);
-  stroke-width: 2.5;
+  stroke-width: var(--nub-w);
   stroke-linecap: round;
   transition: stroke 300ms ease, stroke-width 250ms ease;
 }
@@ -236,10 +295,10 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, var(--surface-top) 0%, var(--surface-bottom) 100%);
+  background: linear-gradient(var(--surface-angle), var(--surface-top) 0%, var(--surface-bottom) 100%);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 236, 208, 0.06);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 16px 40px rgba(var(--shadow-rgb), 0.55), 0 0 0 1px rgba(var(--overlay-rgb), 0.06);
   overflow: hidden;
   animation: panel-spring-in 380ms var(--ease-out-expo);
   transform-origin: center center;
@@ -251,10 +310,7 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    repeating-linear-gradient(91deg, rgba(255, 232, 200, 0.022) 0 1px, transparent 1px 7px),
-    repeating-linear-gradient(89deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 13px),
-    repeating-linear-gradient(90.4deg, rgba(255, 226, 188, 0.014) 0 2px, transparent 2px 23px);
+  background: var(--grain);
 }
 
 #panel > header,
@@ -284,7 +340,7 @@ body {
   width: 24px;
   height: 24px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-small);
   background: transparent;
   color: var(--text-dim);
   font-size: 13px;
@@ -294,13 +350,13 @@ body {
 }
 
 #settings-toggle:hover {
-  background: rgba(255, 236, 208, 0.1);
+  background: rgba(var(--overlay-rgb), 0.1);
   color: var(--text);
   transform: rotate(30deg);
 }
 
 #settings-toggle.active {
-  background: rgba(255, 236, 208, 0.1);
+  background: rgba(var(--overlay-rgb), 0.1);
   color: var(--text);
   transform: rotate(90deg);
 }
@@ -319,7 +375,7 @@ body {
   border: 2px solid transparent;
   border-radius: 8px;
   background-clip: content-box;
-  background-color: rgba(255, 236, 208, 0.16);
+  background-color: rgba(var(--overlay-rgb), 0.16);
 }
 
 #metrics {
@@ -328,7 +384,7 @@ body {
 
 .metric {
   padding: 11px 0;
-  border-bottom: 1px solid rgba(255, 236, 208, 0.07);
+  border-bottom: 1px solid rgba(var(--overlay-rgb), 0.07);
   animation: metric-fade-in 300ms var(--ease-out-expo) backwards;
 }
 
@@ -359,6 +415,7 @@ body {
 }
 
 .metric-pct {
+  font-family: var(--font-num);
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
@@ -401,7 +458,7 @@ body {
 
 .field {
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 236, 208, 0.07);
+  border-bottom: 1px solid rgba(var(--overlay-rgb), 0.07);
 }
 
 .field label {
@@ -413,13 +470,14 @@ body {
 }
 
 .field-value {
+  font-family: var(--font-num);
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
 }
 
 .field input[type="range"] {
   width: 100%;
-  accent-color: #c08a5a;
+  accent-color: var(--control);
 }
 
 .field-hint {
@@ -451,7 +509,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 10px;
-  background: rgba(255, 236, 208, 0.13);
+  background: rgba(var(--overlay-rgb), 0.13);
   transition: background 150ms ease;
 }
 
@@ -468,12 +526,12 @@ body {
 }
 
 .switch input:checked + .switch-track {
-  background: rgba(192, 138, 90, 0.35);
+  background: rgba(var(--control-rgb), 0.35);
 }
 
 .switch input:checked + .switch-track::before {
   transform: translateX(15px);
-  background: #c08a5a;
+  background: var(--control);
 }
 
 .switch input:disabled + .switch-track {
@@ -484,8 +542,8 @@ body {
   width: 100%;
   margin-top: 18px;
   padding: 9px 10px;
-  border: 1px solid rgba(224, 112, 95, 0.35);
-  border-radius: 8px;
+  border: 1px solid rgba(var(--danger-rgb), 0.35);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--danger);
   font-size: 12px;
@@ -494,7 +552,7 @@ body {
 }
 
 .danger-button:hover {
-  background: rgba(224, 112, 95, 0.12);
+  background: rgba(var(--danger-rgb), 0.12);
 }
 
 #panel footer {
@@ -507,8 +565,8 @@ body {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 236, 208, 0.04);
+  border-radius: var(--radius-control);
+  background: rgba(var(--overlay-rgb), 0.04);
   color: var(--text);
   font-size: 12px;
   cursor: pointer;
@@ -517,7 +575,66 @@ body {
 
 #open-claude:hover,
 .field-button:hover {
-  background: rgba(255, 236, 208, 0.1);
+  background: rgba(var(--overlay-rgb), 0.1);
+}
+
+/* ---------- Theme picker ---------- */
+
+.theme-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.theme-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 0 6px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.theme-option:hover {
+  background: rgba(var(--overlay-rgb), 0.06);
+}
+
+.theme-option.selected {
+  background: rgba(var(--overlay-rgb), 0.07);
+  box-shadow: inset 0 0 0 1px var(--control);
+  color: var(--text);
+}
+
+/* Each swatch wears its own theme rather than the active one — otherwise the
+   options would all look alike and the row would say nothing. */
+.theme-swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.swatch-wood {
+  border: 3px solid #e08a63;
+  background: radial-gradient(circle at 50% 28%, #48392a, #2a211a);
+}
+
+.swatch-gauge {
+  border: 3px solid #d98b4a;
+  background: radial-gradient(circle at 50% 34%, #1d2022, #0e1012);
+  box-shadow: 0 0 0 1px #5a5e63, inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.swatch-crt {
+  border: 3px solid #4fffa0;
+  background: #080b09;
+  box-shadow: 0 0 9px -1px #4fffa0;
 }
 
 /* ---------- Source colour, then alert level ---------- */
@@ -575,14 +692,14 @@ body {
 @keyframes pulse-glow-warn {
   0%, 100% {
     box-shadow:
-      inset 0 0 0 1px rgba(255, 236, 208, 0.08),
-      0 4px 12px rgba(0, 0, 0, 0.45),
+      inset 0 0 0 1px rgba(var(--overlay-rgb), 0.08),
+      0 4px 12px rgba(var(--shadow-rgb), 0.45),
       0 0 14px -4px var(--warn);
   }
   50% {
     box-shadow:
-      inset 0 0 0 1px rgba(255, 236, 208, 0.18),
-      0 4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(var(--overlay-rgb), 0.18),
+      0 4px 16px rgba(var(--shadow-rgb), 0.5),
       0 0 22px -1px var(--warn);
   }
 }
@@ -590,14 +707,14 @@ body {
 @keyframes pulse-glow-danger {
   0%, 100% {
     box-shadow:
-      inset 0 0 0 1px rgba(255, 236, 208, 0.12),
-      0 4px 12px rgba(0, 0, 0, 0.45),
+      inset 0 0 0 1px rgba(var(--overlay-rgb), 0.12),
+      0 4px 12px rgba(var(--shadow-rgb), 0.45),
       0 0 16px -3px var(--danger);
   }
   50% {
     box-shadow:
-      inset 0 0 0 1px rgba(255, 236, 208, 0.26),
-      0 4px 18px rgba(0, 0, 0, 0.55),
+      inset 0 0 0 1px rgba(var(--overlay-rgb), 0.26),
+      0 4px 18px rgba(var(--shadow-rgb), 0.55),
       0 0 26px 0px var(--danger);
   }
 }
@@ -642,4 +759,305 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ---------- Theme: instrument ---------- */
+
+/* Everything below is a value swap on the tokens above, plus the four places a
+   dial genuinely differs from a lit disc: a machined bezel, engraved grooves
+   instead of hairlines, recessed bars, and no bloom. */
+.theme-gauge {
+  --accent: #d98b4a;
+  --claude: #d98b4a;
+  --antigravity-claude: #7fb069;
+
+  --severity: #e6e8ea;
+  --warn: #e0a23c;
+  --danger: #d9503d;
+  --danger-rgb: 217, 80, 61;
+  --stale: #5a6066;
+
+  --surface-top: #33373b;
+  --surface-bottom: #1d2023;
+  --surface-angle: 150deg;
+  --disc-top: #1d2022;
+  --disc-bottom: #0e1012;
+
+  --text: #e6e8ea;
+  --text-dim: #9aa1a7;
+
+  --overlay-rgb: 255, 255, 255;
+  --line: rgba(var(--overlay-rgb), 0.1);
+  --track: rgba(var(--overlay-rgb), 0.07);
+
+  --control: #d98b4a;
+  --control-rgb: 217, 139, 74;
+
+  /* Brushed rather than grained: one direction, far finer than the walnut. */
+  --grain: repeating-linear-gradient(96deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 3px);
+
+  --radius-panel: 4px;
+  --radius-control: 3px;
+  --radius-small: 3px;
+
+  --ring-w: 4.5;
+
+  --font-num: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+
+  --tick: #8f969c;
+  --tick-major: #c8ced4;
+}
+
+.theme-gauge .ticks {
+  display: block;
+}
+
+/* The metal is the orb's own background and the disc is inset far enough to
+   leave a band for the graduations to sit on. */
+.theme-gauge #orb {
+  border-radius: 50%;
+  background: linear-gradient(145deg, #6a6e73 0%, #3a3d41 42%, #232629 100%);
+  box-shadow: 0 5px 14px rgba(var(--shadow-rgb), 0.6);
+}
+
+.theme-gauge #orb::before {
+  inset: 9px;
+  box-shadow:
+    inset 0 2px 5px rgba(var(--shadow-rgb), 0.8),
+    0 1px 0 0 rgba(var(--overlay-rgb), 0.09);
+}
+
+.theme-gauge #orb:hover::before {
+  box-shadow:
+    inset 0 2px 5px rgba(var(--shadow-rgb), 0.8),
+    0 1px 0 0 rgba(var(--overlay-rgb), 0.18);
+}
+
+/* An instrument does not bloom outward. The alert is the dial lighting from
+   within, plus the graduation the needle has already gone past. */
+.theme-gauge #orb.warn::before {
+  animation: gauge-lamp-warn 2.8s ease-in-out infinite;
+}
+
+.theme-gauge #orb.danger::before {
+  animation: gauge-lamp-danger 1.8s ease-in-out infinite;
+}
+
+.theme-gauge #orb.warn .tick-70,
+.theme-gauge #orb.danger .tick-70 {
+  stroke: var(--warn);
+  stroke-width: 1.6;
+}
+
+.theme-gauge #orb.danger .tick-90 {
+  stroke: var(--danger);
+  stroke-width: 1.6;
+}
+
+/* A needle stops where it stops; a rounded cap would read a percent or two high. */
+.theme-gauge .ring-value {
+  stroke-linecap: butt;
+  filter: none;
+}
+
+/* Engraved grooves: a dark cut with the light caught on its lower lip. */
+.theme-gauge .metric,
+.theme-gauge .field {
+  border-bottom-color: rgba(var(--shadow-rgb), 0.5);
+  box-shadow: 0 1px 0 0 rgba(var(--overlay-rgb), 0.05);
+}
+
+.theme-gauge #panel {
+  box-shadow:
+    0 14px 36px rgba(var(--shadow-rgb), 0.6),
+    inset 0 1px 0 0 rgba(var(--overlay-rgb), 0.1);
+}
+
+.theme-gauge #panel header {
+  border-bottom-color: rgba(var(--shadow-rgb), 0.55);
+  box-shadow: 0 1px 0 0 rgba(var(--overlay-rgb), 0.06);
+}
+
+.theme-gauge #panel footer {
+  border-top-color: rgba(var(--shadow-rgb), 0.55);
+  box-shadow: inset 0 1px 0 0 rgba(var(--overlay-rgb), 0.06);
+}
+
+.theme-gauge .bar {
+  border-radius: 0;
+  background: var(--disc-bottom);
+  box-shadow: inset 0 1px 2px rgba(var(--shadow-rgb), 0.7);
+}
+
+.theme-gauge .bar span {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.theme-gauge #open-claude,
+.theme-gauge .field-button {
+  border-color: rgba(var(--overlay-rgb), 0.12);
+  background: linear-gradient(180deg, rgba(var(--overlay-rgb), 0.07), rgba(var(--overlay-rgb), 0.02));
+}
+
+@keyframes gauge-lamp-warn {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 2px 5px rgba(var(--shadow-rgb), 0.8),
+      0 1px 0 0 rgba(var(--overlay-rgb), 0.09),
+      inset 0 0 10px -3px var(--warn);
+  }
+  50% {
+    box-shadow:
+      inset 0 2px 5px rgba(var(--shadow-rgb), 0.8),
+      0 1px 0 0 rgba(var(--overlay-rgb), 0.09),
+      inset 0 0 18px 0 var(--warn);
+  }
+}
+
+@keyframes gauge-lamp-danger {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 2px 5px rgba(var(--shadow-rgb), 0.8),
+      0 1px 0 0 rgba(var(--overlay-rgb), 0.12),
+      inset 0 0 12px -3px var(--danger);
+  }
+  50% {
+    box-shadow:
+      inset 0 2px 5px rgba(var(--shadow-rgb), 0.8),
+      0 1px 0 0 rgba(var(--overlay-rgb), 0.26),
+      inset 0 0 22px 1px var(--danger);
+  }
+}
+
+/* ---------- Theme: phosphor ---------- */
+
+/* Nothing here is lit from outside: every colour is something the screen emits.
+   The overlay tint goes green, so hairlines, button fills and the scrollbar all
+   turn into the same phosphor as the chrome. */
+.theme-crt {
+  --accent: #ffa040;
+  --claude: #ffa040;
+  --antigravity-claude: #4fffa0;
+
+  --severity: #d6e8d8;
+  --warn: #ffc23d;
+  --danger: #ff4545;
+  --danger-rgb: 255, 69, 69;
+  --stale: #4a5f4e;
+
+  --surface-top: #0a0d0b;
+  --surface-bottom: #070907;
+  --surface-angle: 180deg;
+  --disc-top: #0a0e0b;
+  --disc-bottom: #060806;
+
+  --text: #d6e8d8;
+  --text-dim: #8aa38f;
+
+  --overlay-rgb: 79, 255, 160;
+  --line: rgba(var(--overlay-rgb), 0.22);
+  --track: rgba(var(--overlay-rgb), 0.09);
+
+  --control: #4fffa0;
+  --control-rgb: 79, 255, 160;
+
+  /* Scanlines, not grain — the panel's own texture slot already does this. */
+  --grain: repeating-linear-gradient(rgba(214, 232, 216, 0.028) 0 1px, transparent 1px 3px);
+
+  --radius-panel: 2px;
+  --radius-control: 2px;
+  --radius-small: 2px;
+
+  --ring-w: 4.5;
+
+  --font-ui: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  --font-num: var(--font-ui);
+}
+
+/* Scanlines ride over the disc as a second background layer, so the orb needs
+   no extra element either. */
+.theme-crt #orb::before {
+  background:
+    repeating-linear-gradient(rgba(214, 232, 216, 0.055) 0 1px, transparent 1px 3px),
+    radial-gradient(circle at 50% 50%, var(--disc-top), var(--disc-bottom));
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--overlay-rgb), 0.14),
+    inset 0 0 18px -6px var(--accent),
+    0 0 18px -6px var(--accent);
+}
+
+.theme-crt #orb:hover::before {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--overlay-rgb), 0.26),
+    inset 0 0 22px -5px var(--accent),
+    0 0 24px -4px var(--accent);
+}
+
+.theme-crt .ring-ghost {
+  display: block;
+  transition: stroke-dashoffset 1700ms linear;
+}
+
+.theme-crt .ring-value {
+  filter: drop-shadow(0 0 5px var(--accent));
+}
+
+.theme-crt #orb-pct {
+  text-shadow: 0 0 9px currentColor;
+}
+
+.theme-crt #nub-line {
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+
+.theme-crt #panel {
+  box-shadow:
+    0 0 32px -10px rgba(var(--overlay-rgb), 0.3),
+    0 14px 36px rgba(var(--shadow-rgb), 0.7);
+}
+
+.theme-crt #panel h1 {
+  color: var(--control);
+  text-shadow: 0 0 8px rgba(var(--overlay-rgb), 0.5);
+}
+
+.theme-crt .metric-pct {
+  text-shadow: 0 0 7px currentColor;
+}
+
+/* Twenty segment lamps, cut out of the bar with a mask rather than built from
+   twenty elements. The track carries the thresholds, so the 70 and 90 lines are
+   on screen while those cells are still dark. */
+.theme-crt .bar {
+  height: 9px;
+  border-radius: 0;
+  background: linear-gradient(
+    90deg,
+    var(--track) 0 70%,
+    rgba(255, 194, 61, 0.18) 70% 90%,
+    rgba(var(--danger-rgb), 0.35) 90% 100%
+  );
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 calc(5% - 2px), transparent calc(5% - 2px) 5%);
+  mask-image: repeating-linear-gradient(90deg, #000 0 calc(5% - 2px), transparent calc(5% - 2px) 5%);
+}
+
+.theme-crt .bar span {
+  border-radius: 0;
+  box-shadow: none;
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+
+.theme-crt #open-claude,
+.theme-crt .field-button {
+  border-color: rgba(var(--overlay-rgb), 0.3);
+  background: rgba(var(--overlay-rgb), 0.05);
+  color: var(--control);
+}
+
+.theme-crt #open-claude:hover,
+.theme-crt .field-button:hover {
+  background: rgba(var(--overlay-rgb), 0.12);
 }

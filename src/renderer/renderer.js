@@ -2,6 +2,13 @@
 
 const RING_CIRCUMFERENCE = 2 * Math.PI * 27;
 
+// Every look is a token swap on :root, so a theme is nothing but a class name.
+const THEMES = [
+  { id: 'wood', label: '木質' },
+  { id: 'gauge', label: '儀器' },
+  { id: 'crt', label: '磷光' },
+];
+
 // The nub's line runs along this span of its long axis.
 const NUB_INSET = 8;
 const NUB_SPAN = 44;
@@ -9,6 +16,7 @@ const NUB_SPAN = 44;
 const el = {
   orb: document.getElementById('orb'),
   ring: document.getElementById('ring'),
+  ringGhost: document.getElementById('ring-ghost'),
   pct: document.getElementById('orb-pct'),
   nub: document.getElementById('nub'),
   nubSvg: document.getElementById('nub-svg'),
@@ -27,6 +35,8 @@ const el = {
   standbyValue: document.getElementById('standby-value'),
   collapseMs: document.getElementById('collapse-ms'),
   collapseValue: document.getElementById('collapse-value'),
+  themeValue: document.getElementById('theme-value'),
+  themePicker: document.getElementById('theme-picker'),
   statuslineValue: document.getElementById('statusline-value'),
   statuslineAction: document.getElementById('statusline-action'),
   statuslineHint: document.getElementById('statusline-hint'),
@@ -41,7 +51,7 @@ let state = {
   mode: 'orb',
   dockEdge: null,
   expanded: false,
-  settings: { idleOpacity: 0.42, standbyMs: 5000, collapseMs: 5000 },
+  settings: { theme: 'wood', idleOpacity: 0.42, standbyMs: 5000, collapseMs: 5000 },
 };
 
 let standby = false;
@@ -58,6 +68,7 @@ let replaceArmed = false;
 let autostart = null;
 
 el.ring.style.strokeDasharray = String(RING_CIRCUMFERENCE);
+el.ringGhost.style.strokeDasharray = String(RING_CIRCUMFERENCE);
 
 function severity(m) {
   if (!m || m.stale) return 'stale';
@@ -88,6 +99,7 @@ function render() {
   el.orb.classList.toggle('hidden', state.mode === 'panel' || isCollapsed);
 
   document.documentElement.style.setProperty('--idle-opacity', String(state.settings.idleOpacity));
+  document.documentElement.className = `theme-${currentTheme()}`;
 
   if (state.mode === 'panel') renderPanel();
   else if (isCollapsed) renderNub();
@@ -158,7 +170,10 @@ function renderOrb() {
   const pct = m ? m.usedPct : 0;
 
   el.orb.className = classesFor(m, true);
-  el.ring.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - Math.min(pct, 100) / 100));
+  const offset = String(RING_CIRCUMFERENCE * (1 - Math.min(pct, 100) / 100));
+  el.ring.style.strokeDashoffset = offset;
+  // Same target, slower transition: the lag is the whole point.
+  el.ringGhost.style.strokeDashoffset = offset;
   animatePct(m && typeof m.usedPct === 'number' ? m.usedPct : null);
 }
 
@@ -221,6 +236,20 @@ function renderMetrics() {
   el.metrics.replaceChildren(...metrics.map(metricRow));
 }
 
+// A settings file from an older build, or one hand-edited to something that no
+// longer exists, falls back rather than leaving the page with no theme at all.
+function currentTheme() {
+  return THEMES.some((t) => t.id === state.settings.theme) ? state.settings.theme : 'wood';
+}
+
+function renderTheme() {
+  const id = currentTheme();
+  el.themeValue.textContent = THEMES.find((t) => t.id === id).label;
+  for (const option of el.themePicker.children) {
+    option.classList.toggle('selected', option.dataset.theme === id);
+  }
+}
+
 function renderSettings() {
   const sync = (input, value) => {
     // Leave a control alone while it is being dragged.
@@ -235,6 +264,7 @@ function renderSettings() {
   el.collapseValue.textContent = seconds(el.collapseMs.value);
   el.idleValue.textContent = `${el.idleOpacity.value}%`;
 
+  renderTheme();
   renderStatusline();
   renderAutostart();
 }
@@ -432,6 +462,11 @@ el.settingsToggle.addEventListener('click', () => {
     refreshStatusline();
     refreshAutostart();
   }
+});
+
+el.themePicker.addEventListener('click', (e) => {
+  const option = e.target.closest('.theme-option');
+  if (option) window.monitor.setSetting('theme', option.dataset.theme);
 });
 
 el.statuslineAction.addEventListener('click', async () => {

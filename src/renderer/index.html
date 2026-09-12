@@ -7,8 +7,27 @@
   <body>
     <!-- Orb. The ring's colour identifies the source, so it carries no label. -->
     <div id="orb" class="hidden">
+      <!-- Dial graduations, drawn unrotated because 0% already sits at the top.
+           Only the instrument theme shows them. The two threshold marks take
+           their colour from the orb's own severity class, so nothing here needs
+           re-rendering when the figure moves. -->
+      <svg class="ticks" viewBox="0 0 76 76">
+        <line class="tick major" x1="38" y1="6" x2="38" y2="3" />
+        <line class="tick" x1="56.81" y1="12.11" x2="58.57" y2="9.68" />
+        <line class="tick" x1="68.44" y1="28.11" x2="71.29" y2="27.18" />
+        <line class="tick" x1="68.44" y1="47.89" x2="71.29" y2="48.82" />
+        <line class="tick" x1="56.81" y1="63.89" x2="58.57" y2="66.32" />
+        <line class="tick major" x1="38" y1="70" x2="38" y2="73" />
+        <line class="tick" x1="19.19" y1="63.89" x2="17.43" y2="66.32" />
+        <line class="tick tick-70" x1="7.56" y1="47.89" x2="4.71" y2="48.82" />
+        <line class="tick tick-80" x1="7.56" y1="28.11" x2="4.71" y2="27.18" />
+        <line class="tick tick-90" x1="19.19" y1="12.11" x2="17.43" y2="9.68" />
+      </svg>
       <svg viewBox="0 0 76 76">
         <circle class="ring-track" cx="38" cy="38" r="27" />
+        <!-- Chases the live ring on a slower, linear transition, so a figure that
+             jumps leaves a trail behind it. Hidden unless a theme asks for it. -->
+        <circle id="ring-ghost" class="ring-ghost" cx="38" cy="38" r="27" />
         <circle id="ring" class="ring-value" cx="38" cy="38" r="27" />
       </svg>
       <div class="readout">
@@ -37,6 +56,23 @@
       </div>
 
       <div id="view-settings" class="view hidden">
+        <div class="field">
+          <label>風格 <span id="theme-value" class="field-value"></span></label>
+          <div id="theme-picker" class="theme-picker">
+            <button type="button" class="theme-option" data-theme="wood">
+              <span class="theme-swatch swatch-wood"></span>
+              木質
+            </button>
+            <button type="button" class="theme-option" data-theme="gauge">
+              <span class="theme-swatch swatch-gauge"></span>
+              儀器
+            </button>
+            <button type="button" class="theme-option" data-theme="crt">
+              <span class="theme-swatch swatch-crt"></span>
+              磷光
+            </button>
+          </div>
+        </div>
         <div class="field">
           <label for="statusline-action">Claude statusline <span id="statusline-value" class="field-value"></span></label>
           <button id="statusline-action" class="field-button"></button>
