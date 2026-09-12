@@ -1,6 +1,6 @@
 {
   "name": "usage-monitor",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "private": true,
   "description": "Floating orb showing Claude and Antigravity quota headroom",
   "author": "ian",
