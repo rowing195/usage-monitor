@@ -655,6 +655,10 @@ body {
   --accent: var(--claude);
 }
 
+.accent-openai {
+  --accent: #39a89b;
+}
+
 .accent-antigravity-claude {
   --accent: var(--antigravity-claude);
 }

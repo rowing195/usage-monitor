@@ -2,7 +2,7 @@
 
 # Usage Monitor
 
-**Windows 桌面上的常駐懸浮球，一眼看出 Claude 與 Google Antigravity 的剩餘額度 —— 在撞牆之前先知道。**
+**Windows 桌面上的常駐懸浮球，一眼看出 Claude、Google Antigravity 與 OpenAI Codex 的剩餘額度 —— 在撞牆之前先知道。**
 
 [English README](README.md)
 
@@ -18,10 +18,11 @@
 
 ## 這是什麼
 
-Usage Monitor 是一顆 Windows 上常駐置頂的小懸浮球，追蹤的是兩個工具的**剩餘額度**——不是 token 統計：
+Usage Monitor 是一顆 Windows 上常駐置頂的小懸浮球，追蹤的是三個工具的**剩餘額度**——不是 token 統計：
 
 - **Claude**（透過 Claude Code 的 statusline，本機唯一真的會帶出 `rate_limits` 百分比的來源）
 - **Google Antigravity**（打它本機的 language server API，每 60 秒輪詢一次）
+- **OpenAI Codex**（透過官方 Codex app-server 讀取訂閱額度，每次完成後 60 秒再更新）
 
 球的圓環顏色讓你一眼看出離額度上限還有多遠。點一下打開面板，看到精確數字、重置倒數、各項來源明細。拖到螢幕邊緣會收合成一條不起眼的細長梯形。
 
@@ -29,7 +30,7 @@ Usage Monitor 是一顆 Windows 上常駐置頂的小懸浮球，追蹤的是兩
 
 ## 特色
 
-- **兩個額度來源，一眼掌握。** Claude 的 5 小時／7 天兩個 rate-limit 視窗，加上 Antigravity 的池化模型額度（11 個模型收斂成 2 個真正的池），統一換算到 0–100 排在一起比較。
+- **三個額度來源，一眼掌握。** Claude 的 5 小時／7 天視窗、Antigravity 的池化模型額度，以及 OpenAI Codex 回傳的額度視窗，統一換算到 0–100 排在一起比較。
 - **球體與梯形即時同步 + 智慧鎖定。** 懸浮球與邊緣梯形統一顯示最近活躍使用的工具；使用 Claude 期間，若 7 天每週總額度達到 ≥ 90%，會自動強制鎖定顯示每週用量（紅色警報），切換回 Antigravity 則無縫切換，兩家工具壁壘分明。
 - **真正的堅固置頂（Screen-saver Tier）。** 採用最高層級置頂與跨工作區／全螢幕支援，搭配視窗生命週期自愈機制，無論視窗切換、失去焦點或 Win+D 都不會被淹沒。
 - **五種外觀，一個開關。** 設定面板最上方一列，可在木質（預設）、玻璃、儀器、紙墨、磷光之間切換，每個選項都用該風格的真實材質畫出自己的預覽。切換即時生效；所有外觀都只是同一組 token 的換值，版面、70/90 門檻與過期規則完全不動。玻璃是半透明而非霧面——透明視窗的背後沒有可供 Chromium 模糊的內容。
@@ -49,6 +50,7 @@ Usage Monitor 是一顆 Windows 上常駐置頂的小懸浮球，追蹤的是兩
 ```
 Claude Code  ──statusline──▶  ~/.usage-monitor/claude-statusline.json  ──▶  懸浮球
 Antigravity  ──本機 RPC，每 60 秒輪詢一次──▶  懸浮球
+OpenAI Codex ──本機 app-server → account/rateLimits/read──▶ 懸浮球
 ```
 
 Claude 的百分比新鮮度取決於你上一次在 Claude Code 裡講話的時間——桌面程式和其他 Claude 介面不會餵資料進來。Antigravity 是獨立輪詢的，會自己保持最新。
@@ -59,7 +61,8 @@ Claude 的百分比新鮮度取決於你上一次在 Claude Code 裡講話的時
 src/
 ├── main/
 │   ├── index.js              視窗狀態機、拖曳、收合吸附、IPC
-│   ├── providers.js           兩個資料來源：抓取、正規化、陳舊判定、排名
+│   ├── providers.js           資料來源整合、陳舊判定、排名
+│   ├── openai.js              Codex 偵測、官方額度介面與輪詢
 │   ├── autostart.js           設定開關背後的開機自動啟動註冊
 │   ├── resources.js           依開發／打包環境解析 scripts/ 的實際路徑
 │   ├── statusline-setup.js    從 app 內安裝／移除 Claude Code statusline
@@ -125,6 +128,14 @@ npm start
 Claude 的百分比只能透過 Claude Code 的 statusline 在本機取得。打開懸浮球的面板 → 齒輪圖示 → **Claude statusline**，按下**安裝**。接著重開 Claude Code、送出一則訊息——`rate_limits` 要等到 session 的第一個 API 回應之後才會出現。
 
 （舊的做法 `npm run install-statusline` 還在，但它寫進 `~/.claude/settings.json` 的指令跟 app 內建安裝的不一樣，兩邊互看都會判定成「已被其他設定佔用」。建議一律用面板裡的按鈕。）
+
+### 接上 OpenAI Codex
+
+安裝 Codex 並使用 ChatGPT 訂閱帳號登入，重新啟動 Usage Monitor 後會自動顯示 **OpenAI Codex 5 小時／7 天**（實際視窗依帳號回傳資料）。面板顯示的是**已使用百分比**；青綠色代表 OpenAI，70%／90% 仍沿用原本的警示門檻。
+
+程式會搜尋 PATH 中的原生 Codex、npm 標準安裝位置與 Windows Codex 桌面版的本機 bin 目錄；自訂安裝可設定環境變數 `CODEX_EXECUTABLE` 為 `codex.exe` 完整路徑。登入狀態由 Codex 自行處理，支援它原本的 `CODEX_HOME` 設定，監控器不讀取或複製登入憑證。此來源不是 ChatGPT 一般聊天額度或 OpenAI API 帳單。
+
+使用 [OpenAI 官方 app-server 額度介面](https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt)，僅初始化並讀取額度，不建立對話。連線失敗時保留原讀數，超過 3 分鐘標示過期；跨過重置時間但尚未取得新讀數時也會標示過期，不假設用量為零。未偵測到 Codex 或無法取得額度時，面板會顯示提示。
 
 ## 已知限制
 

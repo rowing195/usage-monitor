@@ -1,12 +1,13 @@
 {
   "name": "usage-monitor",
-  "version": "0.1.8",
+  "version": "0.10.0",
   "private": true,
-  "description": "Floating orb showing Claude and Antigravity quota headroom",
+  "description": "Floating orb showing Claude, Antigravity and OpenAI Codex quota headroom",
   "author": "ian",
   "license": "MIT",
   "main": "src/main/index.js",
   "scripts": {
+    "test": "node --test",
     "start": "electron .",
     "install-statusline": "node scripts/install-statusline.js",
     "dist": "electron-builder --win",

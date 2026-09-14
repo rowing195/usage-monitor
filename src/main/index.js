@@ -373,12 +373,13 @@ if (!app.requestSingleInstanceLock()) {
     statusline.refresh();
     createWindow();
     tray.init(win);
-    providers.start((next) => {
+    const stopProviders = providers.start((next) => {
       latest = next;
       send();
       tray.update(next);
       enforceAlwaysOnTop();
     });
+    app.once('before-quit', stopProviders);
   });
 
   app.on('window-all-closed', () => app.quit());

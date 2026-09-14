@@ -2,7 +2,7 @@
 
 # Usage Monitor
 
-**A floating orb for Windows that shows how much Claude and Antigravity quota you have left — before you run into the wall.**
+**A floating orb for Windows that shows how much Claude, Antigravity and OpenAI Codex quota you have left — before you run into the wall.**
 
 [繁體中文版 README](README.zh-TW.md)
 
@@ -18,10 +18,11 @@
 
 ## What this is
 
-Usage Monitor is a small always-on-top desktop orb for Windows that tracks **remaining quota** — not token counts — for two tools:
+Usage Monitor is a small always-on-top desktop orb for Windows that tracks **remaining quota** — not token counts — for three tools:
 
 - **Claude** (via Claude Code's status line, the only local source that actually exposes `rate_limits` percentages)
 - **Google Antigravity** (via its local language-server API, polled every 60 seconds)
+- **OpenAI Codex** (via the official local app-server interface, refreshed 60 seconds after each completed poll)
 
 The orb's ring color tells you at a glance how close you are to a limit. Click it to open a panel with the exact numbers, reset countdowns, and per-source detail. Drag it to a screen edge and it docks into a slim, unobtrusive tab.
 
@@ -29,7 +30,7 @@ This project exists because "usage" dashboards that report token counts don't an
 
 ## Features
 
-- **Two quota sources, one glance.** Claude's 5-hour and 7-day rate-limit windows, plus Antigravity's pooled model quotas (11 models collapse into 2 real pools), ranked together on one 0–100 scale.
+- **Three quota sources, one glance.** Claude's 5-hour and 7-day windows, Antigravity's pooled model quotas, and OpenAI Codex's reported quota windows, ranked together on one 0–100 scale.
 - **Synchronized Orb & Tab with Smart Lock.** The orb and docked tab stay in sync, displaying the tool you're actively using. While using Claude, if your 7-day weekly quota reaches ≥ 90%, it automatically locks to the 7-day metric with a red alert; switching to Antigravity seamlessly displays its active model pool.
 - **Truly resilient always-on-top (Screen-saver tier).** High-priority topmost ranking and full-screen / multi-workspace support (`setVisibleOnAllWorkspaces`) with self-healing window lifecycle guards that survive focus shifts and Win+D.
 - **Five looks, one switch.** A row at the top of the settings panel swaps the whole app between walnut (the default), glass, instrument, paper and phosphor — each option previews itself in its own materials. Switching is instant, and every look is a value swap on the same tokens, so the layout, the 70/90 thresholds and the staleness rules never move. The glass look is translucent rather than frosted: a transparent window has no backdrop for Chromium to blur.
@@ -49,6 +50,7 @@ This project exists because "usage" dashboards that report token counts don't an
 ```
 Claude Code  ──status line──▶  ~/.usage-monitor/claude-statusline.json  ──▶  orb
 Antigravity  ──local RPC, polled every 60s──▶  orb
+OpenAI Codex ──local app-server → account/rateLimits/read──▶ orb
 ```
 
 Claude's percentage is only ever as fresh as your last message in Claude Code — the desktop app and other Claude surfaces don't feed it. Antigravity is polled independently and stays current on its own.
@@ -59,7 +61,8 @@ Claude's percentage is only ever as fresh as your last message in Claude Code �
 src/
 ├── main/
 │   ├── index.js              window state machine, dragging, docking, IPC
-│   ├── providers.js           the two data sources: fetch, normalize, staleness, ranking
+│   ├── providers.js           source integration, staleness, ranking
+│   ├── openai.js              Codex discovery, official quota interface and polling
 │   ├── autostart.js           the launch-at-login registration behind the settings switch
 │   ├── resources.js           resolves scripts/ path in dev vs. packaged builds
 │   ├── statusline-setup.js    installs/removes the Claude Code status line from the app
@@ -123,6 +126,14 @@ You do **not** need to package anything for day-to-day development — `npm star
 Claude's percentages only exist locally through Claude Code's status line. Open the orb's panel → gear icon → **Claude statusline**, and click **Install**. Restart Claude Code and send one message — `rate_limits` only appears after the first API response of a session.
 
 (The old way, `npm run install-statusline`, still exists but writes a different command into `~/.claude/settings.json` than the in-app installer does, so the two will show up as "belongs to something else" to each other. Prefer the in-app button.)
+
+### Connecting OpenAI Codex
+
+Install Codex and sign in with your ChatGPT subscription, then restart Usage Monitor. The panel automatically shows OpenAI Codex quota windows (typically 5 hours and 7 days) as **used percentages**, with a teal accent and the existing 70%/90% warnings. This does not track ordinary ChatGPT chat limits or OpenAI API billing.
+
+Discovery checks native executables on PATH, standard npm installation locations, and the Windows Codex desktop app's local bin directory. For a custom installation, set `CODEX_EXECUTABLE` to the full path of `codex.exe`. Codex handles authentication and honors its existing `CODEX_HOME`; the monitor does not read or copy login credentials.
+
+The [official app-server interface](https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt) is used only to initialize and read rate limits, without creating conversations. Failed polls retain their original timestamps and turn stale after three minutes. A passed reset time also marks a reading stale until it is refreshed, rather than assuming zero usage. Missing Codex or unavailable quota is shown as a panel hint.
 
 ## Known limitations
 

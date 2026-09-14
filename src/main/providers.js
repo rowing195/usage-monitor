@@ -6,6 +6,7 @@ const path = require('path');
 const https = require('https');
 const { execFile } = require('child_process');
 const { scriptPath } = require('./resources');
+const { startOpenAI } = require('./openai');
 
 // Claude's status line reports used_percentage on a 0-100 scale; Antigravity
 // reports remaining as a 0-1 fraction. Everything below this line is 0-100, so
@@ -18,6 +19,7 @@ const CLAUDE_STATUSLINE_FILE = path.join(os.homedir(), '.usage-monitor', 'claude
 const STALE_MS = {
   claude: 15 * 60 * 1000,
   antigravity: 3 * 60 * 1000,
+  openai: 3 * 60 * 1000,
 };
 
 const ANTIGRAVITY_POLL_MS = 60 * 1000;
@@ -239,6 +241,8 @@ function isStale(m, now) {
 // A rolling window past its reset time is empty again. That much is certain;
 // anything between the last reading and the reset would be a guess.
 function decorate(m, now) {
+  // An elapsed OpenAI reset is not evidence of zero usage: refresh it first.
+  if (m.source === 'openai' && m.resetsAt && now >= m.resetsAt) return { ...m, stale: true };
   if (m.usedPct !== null && m.resetsAt && now >= m.resetsAt) return { ...m, usedPct: 0, stale: false };
   return { ...m, stale: isStale(m, now) };
 }
@@ -274,8 +278,14 @@ function summarize(metrics, now = Date.now()) {
 function start(onUpdate) {
   let claude = [];
   let antigravity = [];
+  let openai = [];
 
-  const emit = () => onUpdate(summarize([...claude, ...antigravity]));
+  const emit = () => onUpdate(summarize([...claude, ...antigravity, ...openai]));
+
+  const stopOpenAI = startOpenAI((next) => {
+    openai = next;
+    emit();
+  });
 
   watchClaude((next) => {
     claude = next;
@@ -288,6 +298,7 @@ function start(onUpdate) {
   };
   poll();
   setInterval(poll, ANTIGRAVITY_POLL_MS);
+  return stopOpenAI;
 }
 
 module.exports = { start, summarize, parseUserStatus, CLAUDE_STATUSLINE_FILE };
